@@ -1,0 +1,28 @@
+{
+	"name": "@xlair-dev/chart-viewer",
+	"version": "0.1.0",
+	"type": "module",
+	"packageManager": "pnpm@12.11.2",
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "node scripts/build.mjs",
+		"lint": "biome check ."
+	},
+	"peerDependencies": {
+		"react": "^19.0.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.0.0",
+		"@types/react": "^19.0.0",
+		"react": "^19.0.0",
+		"typescript": "^7.0.0"
+	}
+}

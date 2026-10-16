@@ -1190,11 +1190,16 @@ export function ChartViewer({ chart, position, onPositionChange, onSheetPosition
         const canvas = playfield.current;
         if (!canvas)
             return;
-        const draw = () => paintPlayfield(canvas, renderData, currentBeat, noteSpeed);
-        draw();
+        const draw = () => paintPlayfield(canvas, renderData, currentBeatRef.current, noteSpeed);
         const observer = new ResizeObserver(draw);
         observer.observe(canvas);
         return () => observer.disconnect();
+    }, [renderData, noteSpeed, mode]);
+    useEffect(() => {
+        if (mode === "sheet")
+            return;
+        if (playfield.current)
+            paintPlayfield(playfield.current, renderData, currentBeat, noteSpeed);
     }, [renderData, currentBeat, noteSpeed, mode]);
     useLayoutEffect(() => {
         if (position === undefined)

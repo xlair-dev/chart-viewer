@@ -13,7 +13,8 @@
 		}
 	},
 	"scripts": {
-		"build": "node scripts/build.mjs",
+		"build": "pnpm build:wasm && node scripts/build.mjs",
+		"build:wasm": "sh scripts/build-chart-parser.sh",
 		"lint": "biome check ."
 	},
 	"peerDependencies": {

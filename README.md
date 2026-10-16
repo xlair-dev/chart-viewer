@@ -19,3 +19,5 @@ pnpm install --frozen-lockfile
 pnpm lint
 pnpm build
 ```
+
+The parser build requires the Rust `wasm32-unknown-unknown` target and `wasm-pack` 0.15.0. `pnpm build` rebuilds the parser and packages its generated WebAssembly files with the TypeScript output.

@@ -24,7 +24,7 @@ const sheetLaneVisualCount = laneCount + (sheetSideLaneWidthRatio - 1) * 4;
 const sheetPixelsPerBeat = 100;
 const sheetCursorRatio = 0.82;
 const playfieldLookBehindBeats = 1;
-const sheetTileHeight = 16_000;
+const sheetTileHeight = 4_096;
 const sideLaneWidthRatios = {
 	inner: 3,
 	outer: 4.5,
@@ -1526,39 +1526,61 @@ export function ChartViewer({
 		return () => observer.disconnect();
 	}, []);
 	useEffect(() => {
-		const draw = () => {
-			const contentHeight = sheetContent.current?.clientHeight ?? sheetHeight;
-			for (const [index, canvas] of sheetTiles.current.entries()) {
-				if (!canvas) continue;
-				paintSheet(
-					canvas,
-					renderData,
-					sheetEnd,
-					contentHeight,
-					index * sheetTileHeight,
-				);
-			}
-			if (playfield.current)
-				paintPlayfield(
-					playfield.current,
-					renderData,
-					currentBeatRef.current,
-					noteSpeed,
-				);
+		if (mode === "playfield") return;
+		const viewport = sheetViewport.current;
+		if (!viewport) return;
+		const paintedTiles = new Set<HTMLCanvasElement>();
+		const paintTile = (canvas: HTMLCanvasElement) => {
+			const index = sheetTiles.current.indexOf(canvas);
+			if (index < 0) return;
+			paintSheet(
+				canvas,
+				renderData,
+				sheetEnd,
+				sheetContent.current?.clientHeight ?? sheetHeight,
+				index * sheetTileHeight,
+			);
+			paintedTiles.add(canvas);
 		};
-		const frame = requestAnimationFrame(draw);
-		const observer = new ResizeObserver(draw);
-		if (sheetContent.current) observer.observe(sheetContent.current);
-		if (playfield.current) observer.observe(playfield.current);
+		const redrawPaintedTiles = () => {
+			for (const canvas of paintedTiles) paintTile(canvas);
+		};
+		const tileObserver = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					const canvas = entry.target as HTMLCanvasElement;
+					if (entry.isIntersecting && !paintedTiles.has(canvas)) {
+						paintTile(canvas);
+					} else if (!entry.isIntersecting) {
+						canvas.width = 0;
+						canvas.height = 0;
+						paintedTiles.delete(canvas);
+					}
+				}
+			},
+			{ root: viewport, rootMargin: "100% 0px" },
+		);
+		for (const canvas of sheetTiles.current) {
+			if (canvas) tileObserver.observe(canvas);
+		}
+		const observer = new ResizeObserver(redrawPaintedTiles);
+		observer.observe(viewport);
 		return () => {
-			cancelAnimationFrame(frame);
 			observer.disconnect();
+			tileObserver.disconnect();
 		};
-	}, [renderData, noteSpeed, sheetEnd, sheetHeight]);
+	}, [renderData, mode, sheetEnd, sheetHeight]);
 	useEffect(() => {
-		if (playfield.current)
-			paintPlayfield(playfield.current, renderData, currentBeat, noteSpeed);
-	}, [renderData, currentBeat, noteSpeed]);
+		if (mode === "sheet") return;
+		const canvas = playfield.current;
+		if (!canvas) return;
+		const draw = () =>
+			paintPlayfield(canvas, renderData, currentBeat, noteSpeed);
+		draw();
+		const observer = new ResizeObserver(draw);
+		observer.observe(canvas);
+		return () => observer.disconnect();
+	}, [renderData, currentBeat, noteSpeed, mode]);
 	useLayoutEffect(() => {
 		if (position === undefined) return;
 		if (preserveScrollAfterClick.current) {

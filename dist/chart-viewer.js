@@ -764,8 +764,12 @@ function paintPlayfield(canvas, data, currentBeat, noteSpeed) {
     if (width <= 0 || height <= 0)
         return;
     const ratio = window.devicePixelRatio || 1;
-    canvas.width = width * ratio;
-    canvas.height = height * ratio;
+    const canvasWidth = Math.round(width * ratio);
+    const canvasHeight = Math.round(height * ratio);
+    if (canvas.width !== canvasWidth)
+        canvas.width = canvasWidth;
+    if (canvas.height !== canvasHeight)
+        canvas.height = canvasHeight;
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     context.fillStyle = playfieldColors.background;
     context.fillRect(0, 0, width, height);

@@ -1127,6 +1127,7 @@ export function ChartViewer({ chart, position, onPositionChange, onSheetPosition
         laneTransform: sheetLaneTransform,
         formatPosition: (beat) => chartPositionLabel(renderData.measureBoundaries, beat),
     };
+    const renderedSidePanel = typeof sidePanel === "function" ? sidePanel(sheetGeometry) : sidePanel;
     useEffect(() => {
         const viewport = sheetViewport.current;
         if (!viewport)
@@ -1239,7 +1240,7 @@ export function ChartViewer({ chart, position, onPositionChange, onSheetPosition
         }
         changePosition(beat);
     }
-    return (_jsxs("div", { className: `chart-viewer chart-viewer--${mode}${sidePanel ? " chart-viewer--with-side-panel" : ""}${className ? ` ${className}` : ""}`, style: style, children: [mode !== "playfield" && (_jsxs("section", { className: "chart-viewer__panel chart-viewer__sheet-panel", children: [_jsx("h2", { className: "chart-viewer__title", children: "\u8B5C\u9762\u30B7\u30FC\u30C8" }), _jsxs("div", { className: "chart-viewer__sheet-viewport", ref: sheetViewport, onScroll: (event) => {
+    return (_jsxs("div", { className: `chart-viewer chart-viewer--${mode}${renderedSidePanel ? " chart-viewer--with-side-panel" : ""}${className ? ` ${className}` : ""}`, style: style, children: [mode !== "playfield" && (_jsxs("section", { className: "chart-viewer__panel chart-viewer__sheet-panel", children: [_jsx("h2", { className: "chart-viewer__title", children: "\u8B5C\u9762\u30B7\u30FC\u30C8" }), _jsxs("div", { className: "chart-viewer__sheet-viewport", ref: sheetViewport, onScroll: (event) => {
                             const viewport = event.currentTarget;
                             const content = sheetContent.current;
                             if (!content)
@@ -1273,5 +1274,5 @@ export function ChartViewer({ chart, position, onPositionChange, onSheetPosition
                                                         onNoteSpeedCommit?.();
                                                 }, step: 0.05, type: "number", value: displayNoteSpeed ?? (noteSpeed / 2.6).toFixed(2) }), _jsx("span", { children: "\u500D" })] })] }))] })), typeof sheetFooter === "function"
                         ? sheetFooter(sheetGeometry)
-                        : sheetFooter] })), mode !== "sheet" && (_jsxs("section", { className: "chart-viewer__panel chart-viewer__playfield-panel", children: [_jsx("h2", { className: "chart-viewer__title", children: "\u30B2\u30FC\u30E0\u753B\u9762\uFF08\u7C21\u6613\u8868\u793A\uFF09" }), _jsx("canvas", { "aria-label": "\u7C21\u6613\u30B2\u30FC\u30E0\u753B\u9762", className: "chart-viewer__playfield-canvas", ref: playfield })] })), typeof sidePanel === "function" ? sidePanel(sheetGeometry) : sidePanel] }));
+                        : sheetFooter] })), mode !== "sheet" && (_jsxs("section", { className: "chart-viewer__panel chart-viewer__playfield-panel", children: [_jsx("h2", { className: "chart-viewer__title", children: "\u30B2\u30FC\u30E0\u753B\u9762\uFF08\u7C21\u6613\u8868\u793A\uFF09" }), _jsx("canvas", { "aria-label": "\u7C21\u6613\u30B2\u30FC\u30E0\u753B\u9762", className: "chart-viewer__playfield-canvas", ref: playfield })] })), renderedSidePanel] }));
 }

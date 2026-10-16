@@ -1507,6 +1507,8 @@ export function ChartViewer({
 		formatPosition: (beat) =>
 			chartPositionLabel(renderData.measureBoundaries, beat),
 	};
+	const renderedSidePanel =
+		typeof sidePanel === "function" ? sidePanel(sheetGeometry) : sidePanel;
 
 	useEffect(() => {
 		const viewport = sheetViewport.current;
@@ -1649,7 +1651,7 @@ export function ChartViewer({
 
 	return (
 		<div
-			className={`chart-viewer chart-viewer--${mode}${sidePanel ? " chart-viewer--with-side-panel" : ""}${className ? ` ${className}` : ""}`}
+			className={`chart-viewer chart-viewer--${mode}${renderedSidePanel ? " chart-viewer--with-side-panel" : ""}${className ? ` ${className}` : ""}`}
 			style={style}
 		>
 			{mode !== "playfield" && (
@@ -1779,7 +1781,7 @@ export function ChartViewer({
 					/>
 				</section>
 			)}
-			{typeof sidePanel === "function" ? sidePanel(sheetGeometry) : sidePanel}
+			{renderedSidePanel}
 		</div>
 	);
 }

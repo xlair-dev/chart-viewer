@@ -20,4 +20,4 @@ pnpm lint
 pnpm build
 ```
 
-The parser build requires the Rust `wasm32-unknown-unknown` target and `wasm-pack` 0.15.0. `pnpm build` rebuilds the parser and packages its generated WebAssembly files with the TypeScript output.
+The parser build uses the Rust 1.99.1 toolchain and `wasm-pack` 0.15.0. `pnpm build` rebuilds the parser and packages its generated WebAssembly files with the TypeScript output.

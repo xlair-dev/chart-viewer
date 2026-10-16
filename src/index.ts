@@ -2,7 +2,7 @@ export type {
 	ChartSheetOverlayGeometry,
 	ChartViewMode,
 } from "./chart-viewer.js";
-export { ChartViewer } from "./chart-viewer.js";
+export { ChartViewer, chartEndBeat } from "./chart-viewer.js";
 export type * from "./lib/chart-model.js";
 export type { SideXTapPair } from "./lib/chart-note-relations.js";
 export { sideXTapPairs } from "./lib/chart-note-relations.js";

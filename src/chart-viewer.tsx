@@ -753,6 +753,11 @@ function renderDataFor(chart: ChartData): ChartRenderData {
 	return data;
 }
 
+/** Returns the final beat used by ChartViewer's rendered chart. */
+export function chartEndBeat(chart: ChartData): number {
+	return renderDataFor(chart).end;
+}
+
 function notesOverlapping(
 	data: ChartRenderData,
 	minimum: number,

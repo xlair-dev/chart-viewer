@@ -9,6 +9,8 @@ export interface ChartSheetOverlayGeometry {
     laneTransform: (lane: number) => string;
     formatPosition: (beat: number) => string;
 }
+/** Returns the final beat used by ChartViewer's rendered chart. */
+export declare function chartEndBeat(chart: ChartData): number;
 export declare function ChartViewer({ chart, position, onPositionChange, onSheetPositionSelect, noteSpeed, displayNoteSpeed, onNoteSpeedChange, onNoteSpeedCommit, mode, showSeekBar, sheetOverlay, sheetFooter, sidePanel, className, style, }: {
     chart: ChartData;
     position?: number;

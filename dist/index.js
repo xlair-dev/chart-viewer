@@ -1,4 +1,4 @@
-export { ChartViewer } from "./chart-viewer.js";
+export { ChartViewer, chartEndBeat } from "./chart-viewer.js";
 export { sideXTapPairs } from "./lib/chart-note-relations.js";
 export { parseChartBytes, parseChartFile } from "./lib/chart-parser.js";
 export { positionFromValue, positionValue } from "./lib/chart-position.js";

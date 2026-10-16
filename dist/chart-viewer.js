@@ -580,6 +580,10 @@ function renderDataFor(chart) {
     chartRenderDataCache.set(chart, data);
     return data;
 }
+/** Returns the final beat used by ChartViewer's rendered chart. */
+export function chartEndBeat(chart) {
+    return renderDataFor(chart).end;
+}
 function notesOverlapping(data, minimum, maximum) {
     let limit = 0;
     let high = data.spatialIndex.length;

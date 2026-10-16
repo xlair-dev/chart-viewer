@@ -19,3 +19,5 @@ pnpm install --frozen-lockfile
 pnpm lint
 pnpm build
 ```
+
+The parser build uses the Rust 1.99.1 toolchain and `wasm-pack` 0.15.0. `pnpm build` rebuilds the parser and packages its generated WebAssembly files with the TypeScript output.

@@ -1,11 +1,23 @@
 import { spawnSync } from "node:child_process";
-import { rm } from "node:fs/promises";
+import { cp, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 await rm(new URL("../dist/", import.meta.url), {
 	recursive: true,
 	force: true,
 });
+
+await rm(new URL("../src/wasm/", import.meta.url), {
+	recursive: true,
+	force: true,
+});
+await cp(
+	new URL("../wasm/pkg/", import.meta.url),
+	new URL("../src/wasm/", import.meta.url),
+	{
+		recursive: true,
+	},
+);
 
 const result = spawnSync(
 	process.execPath,
@@ -20,4 +32,12 @@ const result = spawnSync(
 );
 
 if (result.error) throw result.error;
-process.exitCode = result.status ?? 1;
+if (result.status !== 0) {
+	process.exitCode = result.status ?? 1;
+} else {
+	await cp(
+		new URL("../wasm/pkg/", import.meta.url),
+		new URL("../dist/wasm/", import.meta.url),
+		{ recursive: true },
+	);
+}

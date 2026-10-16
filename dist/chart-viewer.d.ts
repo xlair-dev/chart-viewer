@@ -21,8 +21,8 @@ export declare function ChartViewer({ chart, position, onPositionChange, onSheet
     mode?: ChartViewMode;
     showSeekBar?: boolean;
     sheetOverlay?: (geometry: ChartSheetOverlayGeometry) => ReactNode;
-    sheetFooter?: ReactNode;
-    sidePanel?: ReactNode;
+    sheetFooter?: ReactNode | ((geometry: ChartSheetOverlayGeometry) => ReactNode);
+    sidePanel?: ReactNode | ((geometry: ChartSheetOverlayGeometry) => ReactNode);
     className?: string;
     style?: CSSProperties;
 }): import("react").JSX.Element;

@@ -1465,8 +1465,10 @@ export function ChartViewer({
 	mode?: ChartViewMode;
 	showSeekBar?: boolean;
 	sheetOverlay?: (geometry: ChartSheetOverlayGeometry) => ReactNode;
-	sheetFooter?: ReactNode;
-	sidePanel?: ReactNode;
+	sheetFooter?:
+		| ReactNode
+		| ((geometry: ChartSheetOverlayGeometry) => ReactNode);
+	sidePanel?: ReactNode | ((geometry: ChartSheetOverlayGeometry) => ReactNode);
 	className?: string;
 	style?: CSSProperties;
 }) {
@@ -1496,6 +1498,15 @@ export function ChartViewer({
 	const sheetTileCount = Math.max(1, Math.ceil(sheetHeight / sheetTileHeight));
 	const currentBeatRef = useRef(currentBeat);
 	currentBeatRef.current = currentBeat;
+	const sheetGeometry: ChartSheetOverlayGeometry = {
+		currentBeat,
+		endBeat: end,
+		positionStyle: (beat) => sheetPositionStyle(beat, sheetEnd),
+		laneStyle: sheetLaneStyle,
+		laneTransform: sheetLaneTransform,
+		formatPosition: (beat) =>
+			chartPositionLabel(renderData.measureBoundaries, beat),
+	};
 
 	useEffect(() => {
 		const viewport = sheetViewport.current;
@@ -1698,15 +1709,7 @@ export function ChartViewer({
 									/>
 								);
 							})}
-							{sheetOverlay?.({
-								currentBeat,
-								endBeat: end,
-								positionStyle: (beat) => sheetPositionStyle(beat, sheetEnd),
-								laneStyle: sheetLaneStyle,
-								laneTransform: sheetLaneTransform,
-								formatPosition: (beat) =>
-									chartPositionLabel(renderData.measureBoundaries, beat),
-							})}
+							{sheetOverlay?.(sheetGeometry)}
 						</div>
 						<div className="chart-viewer__sheet-cursor" />
 					</div>
@@ -1761,7 +1764,9 @@ export function ChartViewer({
 							)}
 						</div>
 					)}
-					{sheetFooter}
+					{typeof sheetFooter === "function"
+						? sheetFooter(sheetGeometry)
+						: sheetFooter}
 				</section>
 			)}
 			{mode !== "sheet" && (
@@ -1774,7 +1779,7 @@ export function ChartViewer({
 					/>
 				</section>
 			)}
-			{sidePanel}
+			{typeof sidePanel === "function" ? sidePanel(sheetGeometry) : sidePanel}
 		</div>
 	);
 }

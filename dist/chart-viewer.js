@@ -1119,6 +1119,14 @@ export function ChartViewer({ chart, position, onPositionChange, onSheetPosition
     const sheetTileCount = Math.max(1, Math.ceil(sheetHeight / sheetTileHeight));
     const currentBeatRef = useRef(currentBeat);
     currentBeatRef.current = currentBeat;
+    const sheetGeometry = {
+        currentBeat,
+        endBeat: end,
+        positionStyle: (beat) => sheetPositionStyle(beat, sheetEnd),
+        laneStyle: sheetLaneStyle,
+        laneTransform: sheetLaneTransform,
+        formatPosition: (beat) => chartPositionLabel(renderData.measureBoundaries, beat),
+    };
     useEffect(() => {
         const viewport = sheetViewport.current;
         if (!viewport)
@@ -1258,17 +1266,12 @@ export function ChartViewer({ chart, position, onPositionChange, onSheetPosition
                                         return (_jsx("canvas", { "aria-label": index === 0 ? "譜面全体" : undefined, className: "chart-viewer__sheet-tile", ref: (canvas) => {
                                                 sheetTiles.current[index] = canvas;
                                             }, style: { height: `${tileHeight}px` } }, tileTop));
-                                    }), sheetOverlay?.({
-                                        currentBeat,
-                                        endBeat: end,
-                                        positionStyle: (beat) => sheetPositionStyle(beat, sheetEnd),
-                                        laneStyle: sheetLaneStyle,
-                                        laneTransform: sheetLaneTransform,
-                                        formatPosition: (beat) => chartPositionLabel(renderData.measureBoundaries, beat),
-                                    })] }), _jsx("div", { className: "chart-viewer__sheet-cursor" })] }), (showSeekBar || onNoteSpeedChange) && (_jsxs("div", { className: "chart-viewer__controls", children: [showSeekBar && (_jsxs("label", { className: "chart-viewer__seek", children: [_jsxs("span", { className: "chart-viewer__seek-label", children: [_jsx("span", { children: "\u518D\u751F\u4F4D\u7F6E" }), _jsx("span", { children: chartPositionLabel(renderData.measureBoundaries, currentBeat) })] }), _jsx("input", { "aria-label": "\u518D\u751F\u4F4D\u7F6E", className: "chart-viewer__seek-input", max: end, min: 0, onChange: (event) => seekTo(Number(event.target.value)), step: 0.01, type: "range", value: currentBeat })] })), onNoteSpeedChange && (_jsxs("label", { className: "chart-viewer__note-speed", children: [_jsx("span", { children: "\u30CE\u30FC\u30C4\u901F\u5EA6" }), _jsxs("div", { children: [_jsx("input", { "aria-label": "\u30CE\u30FC\u30C4\u901F\u5EA6", className: "chart-viewer__note-speed-input", max: 2, min: 0.5, onChange: (event) => {
+                                    }), sheetOverlay?.(sheetGeometry)] }), _jsx("div", { className: "chart-viewer__sheet-cursor" })] }), (showSeekBar || onNoteSpeedChange) && (_jsxs("div", { className: "chart-viewer__controls", children: [showSeekBar && (_jsxs("label", { className: "chart-viewer__seek", children: [_jsxs("span", { className: "chart-viewer__seek-label", children: [_jsx("span", { children: "\u518D\u751F\u4F4D\u7F6E" }), _jsx("span", { children: chartPositionLabel(renderData.measureBoundaries, currentBeat) })] }), _jsx("input", { "aria-label": "\u518D\u751F\u4F4D\u7F6E", className: "chart-viewer__seek-input", max: end, min: 0, onChange: (event) => seekTo(Number(event.target.value)), step: 0.01, type: "range", value: currentBeat })] })), onNoteSpeedChange && (_jsxs("label", { className: "chart-viewer__note-speed", children: [_jsx("span", { children: "\u30CE\u30FC\u30C4\u901F\u5EA6" }), _jsxs("div", { children: [_jsx("input", { "aria-label": "\u30CE\u30FC\u30C4\u901F\u5EA6", className: "chart-viewer__note-speed-input", max: 2, min: 0.5, onChange: (event) => {
                                                     onNoteSpeedChange(event.target.value);
                                                 }, onBlur: onNoteSpeedCommit, onKeyDown: (event) => {
                                                     if (event.key === "Enter")
                                                         onNoteSpeedCommit?.();
-                                                }, step: 0.05, type: "number", value: displayNoteSpeed ?? (noteSpeed / 2.6).toFixed(2) }), _jsx("span", { children: "\u500D" })] })] }))] })), sheetFooter] })), mode !== "sheet" && (_jsxs("section", { className: "chart-viewer__panel chart-viewer__playfield-panel", children: [_jsx("h2", { className: "chart-viewer__title", children: "\u30B2\u30FC\u30E0\u753B\u9762\uFF08\u7C21\u6613\u8868\u793A\uFF09" }), _jsx("canvas", { "aria-label": "\u7C21\u6613\u30B2\u30FC\u30E0\u753B\u9762", className: "chart-viewer__playfield-canvas", ref: playfield })] })), sidePanel] }));
+                                                }, step: 0.05, type: "number", value: displayNoteSpeed ?? (noteSpeed / 2.6).toFixed(2) }), _jsx("span", { children: "\u500D" })] })] }))] })), typeof sheetFooter === "function"
+                        ? sheetFooter(sheetGeometry)
+                        : sheetFooter] })), mode !== "sheet" && (_jsxs("section", { className: "chart-viewer__panel chart-viewer__playfield-panel", children: [_jsx("h2", { className: "chart-viewer__title", children: "\u30B2\u30FC\u30E0\u753B\u9762\uFF08\u7C21\u6613\u8868\u793A\uFF09" }), _jsx("canvas", { "aria-label": "\u7C21\u6613\u30B2\u30FC\u30E0\u753B\u9762", className: "chart-viewer__playfield-canvas", ref: playfield })] })), typeof sidePanel === "function" ? sidePanel(sheetGeometry) : sidePanel] }));
 }

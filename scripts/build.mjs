@@ -36,6 +36,10 @@ if (result.status !== 0) {
 	process.exitCode = result.status ?? 1;
 } else {
 	await cp(
+		new URL("../src/chart-viewer.css", import.meta.url),
+		new URL("../dist/chart-viewer.css", import.meta.url),
+	);
+	await cp(
 		new URL("../wasm/pkg/", import.meta.url),
 		new URL("../dist/wasm/", import.meta.url),
 		{ recursive: true },

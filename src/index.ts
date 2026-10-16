@@ -1,4 +1,11 @@
+export type {
+	ChartSheetOverlayGeometry,
+	ChartViewMode,
+} from "./chart-viewer.js";
+export { ChartViewer, chartEndBeat } from "./chart-viewer.js";
 export type * from "./lib/chart-model.js";
+export type { SideXTapPair } from "./lib/chart-note-relations.js";
+export { sideXTapPairs } from "./lib/chart-note-relations.js";
 export type { ChartMode } from "./lib/chart-parser.js";
 export { parseChartBytes, parseChartFile } from "./lib/chart-parser.js";
 export { positionFromValue, positionValue } from "./lib/chart-position.js";

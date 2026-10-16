@@ -1,0 +1,136 @@
+.chart-viewer {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 1.25rem;
+}
+
+.chart-viewer__panel {
+	min-width: 0;
+	overflow: hidden;
+	border: 1px solid;
+	border-radius: 1rem;
+	padding: 1rem;
+}
+
+.chart-viewer__sheet-panel {
+	position: relative;
+	border-color: #334155;
+	background: #0f172a;
+	color: #cbd5e1;
+}
+
+.chart-viewer__playfield-panel {
+	border-color: #cbd5e1;
+	background: #fff;
+	color: #0f172a;
+}
+
+.chart-viewer__title {
+	margin: 0 0 0.75rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+.chart-viewer__sheet-viewport {
+	position: relative;
+	max-height: 70vh;
+	overflow-x: hidden;
+	overflow-y: auto;
+	border-radius: 0.5rem;
+}
+
+.chart-viewer__sheet-content {
+	position: relative;
+	cursor: pointer;
+}
+
+.chart-viewer__sheet-canvas {
+	display: block;
+	width: 100%;
+	position: sticky;
+	top: 0;
+	z-index: 0;
+	pointer-events: none;
+}
+
+.chart-viewer__sheet-cursor {
+	position: sticky;
+	bottom: 18%;
+	height: 0;
+	border-top: 2px solid #fb7185;
+	box-shadow: 0 0 12px #fb7185;
+	pointer-events: none;
+}
+
+.chart-viewer__controls {
+	display: flex;
+	align-items: flex-end;
+	gap: 1rem;
+	margin-top: 1rem;
+	font-size: 0.75rem;
+}
+
+.chart-viewer__seek {
+	min-width: 0;
+	flex: 1;
+}
+
+.chart-viewer__seek-label {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 0.5rem;
+}
+
+.chart-viewer__seek-input {
+	width: 100%;
+	accent-color: #fb7185;
+}
+
+.chart-viewer__note-speed {
+	flex: 0 0 6rem;
+}
+
+.chart-viewer__note-speed > span {
+	display: block;
+	margin-bottom: 0.5rem;
+}
+
+.chart-viewer__note-speed > div {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+}
+
+.chart-viewer__note-speed-input {
+	width: 100%;
+	border: 1px solid #475569;
+	border-radius: 0.25rem;
+	background: #0f172a;
+	padding: 0.25rem 0.5rem;
+	color: #f1f5f9;
+	text-align: right;
+}
+
+.chart-viewer__playfield-canvas {
+	display: block;
+	width: 100%;
+	aspect-ratio: 4 / 5;
+}
+
+@media (min-width: 1280px) {
+	.chart-viewer--both {
+		grid-template-columns: minmax(0, 1.2fr) minmax(20rem, 0.8fr);
+	}
+
+	.chart-viewer--both.chart-viewer--with-side-panel {
+		grid-template-columns: minmax(0, 1.2fr) minmax(20rem, 0.8fr) minmax(
+				16rem,
+				0.7fr
+			);
+	}
+
+	.chart-viewer--sheet.chart-viewer--with-side-panel,
+	.chart-viewer--playfield.chart-viewer--with-side-panel {
+		grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.7fr);
+	}
+}

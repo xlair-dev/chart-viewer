@@ -44,9 +44,13 @@
 	cursor: pointer;
 }
 
-.chart-viewer__sheet-tile {
+.chart-viewer__sheet-canvas {
 	display: block;
 	width: 100%;
+	position: sticky;
+	top: 0;
+	z-index: 0;
+	pointer-events: none;
 }
 
 .chart-viewer__sheet-cursor {

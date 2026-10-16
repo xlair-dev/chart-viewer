@@ -1,6 +1,6 @@
 "use client";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useEffect, useLayoutEffect, useRef, useState, } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, } from "react";
 import { sideXTapPairs } from "./lib/chart-note-relations.js";
 import { positionValue } from "./lib/chart-position.js";
 const sideOrder = [
@@ -15,7 +15,6 @@ const sheetLaneVisualCount = laneCount + (sheetSideLaneWidthRatio - 1) * 4;
 const sheetPixelsPerBeat = 100;
 const sheetCursorRatio = 0.82;
 const playfieldLookBehindBeats = 1;
-const sheetTileHeight = 4_096;
 const sideLaneWidthRatios = {
     inner: 3,
     outer: 4.5,
@@ -1107,9 +1106,10 @@ function paintPlayfield(canvas, data, currentBeat, noteSpeed) {
     }
 }
 export function ChartViewer({ chart, position, onPositionChange, onSheetPositionSelect, noteSpeed = 1, displayNoteSpeed, onNoteSpeedChange, onNoteSpeedCommit, mode = "both", showSeekBar = false, sheetOverlay, sheetFooter, sidePanel, className, style, }) {
-    const sheetTiles = useRef([]);
+    const sheetCanvas = useRef(null);
     const sheetContent = useRef(null);
     const sheetViewport = useRef(null);
+    const sheetDrawFrame = useRef(undefined);
     const playfield = useRef(null);
     const programmaticScrollTop = useRef(undefined);
     const preserveScrollAfterClick = useRef(false);
@@ -1124,7 +1124,6 @@ export function ChartViewer({ chart, position, onPositionChange, onSheetPosition
     const sheetEnd = end + sheetPaddingBeats;
     const sheetHeight = sheetEnd * sheetPixelsPerBeat * noteSpeed +
         Math.max(sheetViewportHeight, 600);
-    const sheetTileCount = Math.max(1, Math.ceil(sheetHeight / sheetTileHeight));
     const currentBeatRef = useRef(currentBeat);
     currentBeatRef.current = currentBeat;
     const sheetGeometry = {
@@ -1136,6 +1135,19 @@ export function ChartViewer({ chart, position, onPositionChange, onSheetPosition
         formatPosition: (beat) => chartPositionLabel(renderData.measureBoundaries, beat),
     };
     const renderedSidePanel = typeof sidePanel === "function" ? sidePanel(sheetGeometry) : sidePanel;
+    const scheduleSheetDraw = useCallback(() => {
+        if (sheetDrawFrame.current !== undefined)
+            return;
+        sheetDrawFrame.current = requestAnimationFrame(() => {
+            sheetDrawFrame.current = undefined;
+            const canvas = sheetCanvas.current;
+            const content = sheetContent.current;
+            const viewport = sheetViewport.current;
+            if (!canvas || !content || !viewport)
+                return;
+            paintSheet(canvas, renderData, sheetEnd, content.clientHeight, viewport.scrollTop);
+        });
+    }, [renderData, sheetEnd]);
     useEffect(() => {
         const viewport = sheetViewport.current;
         if (!viewport)
@@ -1150,44 +1162,19 @@ export function ChartViewer({ chart, position, onPositionChange, onSheetPosition
         if (mode === "playfield")
             return;
         const viewport = sheetViewport.current;
-        if (!viewport)
+        if (!viewport || !sheetCanvas.current)
             return;
-        const paintedTiles = new Set();
-        const paintTile = (canvas) => {
-            const index = sheetTiles.current.indexOf(canvas);
-            if (index < 0)
-                return;
-            paintSheet(canvas, renderData, sheetEnd, sheetContent.current?.clientHeight ?? sheetHeight, index * sheetTileHeight);
-            paintedTiles.add(canvas);
-        };
-        const redrawPaintedTiles = () => {
-            for (const canvas of paintedTiles)
-                paintTile(canvas);
-        };
-        const tileObserver = new IntersectionObserver((entries) => {
-            for (const entry of entries) {
-                const canvas = entry.target;
-                if (entry.isIntersecting && !paintedTiles.has(canvas)) {
-                    paintTile(canvas);
-                }
-                else if (!entry.isIntersecting) {
-                    canvas.width = 0;
-                    canvas.height = 0;
-                    paintedTiles.delete(canvas);
-                }
-            }
-        }, { root: viewport, rootMargin: "100% 0px" });
-        for (const canvas of sheetTiles.current) {
-            if (canvas)
-                tileObserver.observe(canvas);
-        }
-        const observer = new ResizeObserver(redrawPaintedTiles);
+        const observer = new ResizeObserver(scheduleSheetDraw);
         observer.observe(viewport);
+        scheduleSheetDraw();
         return () => {
             observer.disconnect();
-            tileObserver.disconnect();
+            if (sheetDrawFrame.current !== undefined) {
+                cancelAnimationFrame(sheetDrawFrame.current);
+                sheetDrawFrame.current = undefined;
+            }
         };
-    }, [renderData, mode, sheetEnd, sheetHeight]);
+    }, [mode, scheduleSheetDraw]);
     useEffect(() => {
         if (mode === "sheet")
             return;
@@ -1283,6 +1270,7 @@ export function ChartViewer({ chart, position, onPositionChange, onSheetPosition
     }
     return (_jsxs("div", { className: `chart-viewer chart-viewer--${mode}${renderedSidePanel ? " chart-viewer--with-side-panel" : ""}${className ? ` ${className}` : ""}`, style: style, children: [mode !== "playfield" && (_jsxs("section", { className: "chart-viewer__panel chart-viewer__sheet-panel", children: [_jsx("h2", { className: "chart-viewer__title", children: "\u8B5C\u9762\u30B7\u30FC\u30C8" }), _jsxs("div", { className: "chart-viewer__sheet-viewport", ref: sheetViewport, onScroll: (event) => {
                             const viewport = event.currentTarget;
+                            scheduleSheetDraw();
                             const content = sheetContent.current;
                             if (!content)
                                 return;
@@ -1302,13 +1290,10 @@ export function ChartViewer({ chart, position, onPositionChange, onSheetPosition
                             const beat = ((sheetBottom - positionY) / (sheetBottom - sheetTop)) *
                                 sheetEnd;
                             changePosition(Math.max(0, Math.min(end, beat)));
-                        }, children: [_jsxs("div", { className: "chart-viewer__sheet-content", ref: sheetContent, onClick: handleSheetClick, onKeyDown: handleSheetKeyDown, role: "application", style: { height: `${sheetHeight}px` }, children: [Array.from({ length: sheetTileCount }, (_, index) => {
-                                        const tileTop = index * sheetTileHeight;
-                                        const tileHeight = Math.min(sheetTileHeight, sheetHeight - tileTop);
-                                        return (_jsx("canvas", { "aria-label": index === 0 ? "譜面全体" : undefined, className: "chart-viewer__sheet-tile", ref: (canvas) => {
-                                                sheetTiles.current[index] = canvas;
-                                            }, style: { height: `${tileHeight}px` } }, tileTop));
-                                    }), sheetOverlay?.(sheetGeometry)] }), _jsx("div", { className: "chart-viewer__sheet-cursor" })] }), (showSeekBar || onNoteSpeedChange) && (_jsxs("div", { className: "chart-viewer__controls", children: [showSeekBar && (_jsxs("label", { className: "chart-viewer__seek", children: [_jsxs("span", { className: "chart-viewer__seek-label", children: [_jsx("span", { children: "\u518D\u751F\u4F4D\u7F6E" }), _jsx("span", { children: chartPositionLabel(renderData.measureBoundaries, currentBeat) })] }), _jsx("input", { "aria-label": "\u518D\u751F\u4F4D\u7F6E", className: "chart-viewer__seek-input", max: end, min: 0, onChange: (event) => seekTo(Number(event.target.value)), step: 0.01, type: "range", value: currentBeat })] })), onNoteSpeedChange && (_jsxs("label", { className: "chart-viewer__note-speed", children: [_jsx("span", { children: "\u30CE\u30FC\u30C4\u901F\u5EA6" }), _jsxs("div", { children: [_jsx("input", { "aria-label": "\u30CE\u30FC\u30C4\u901F\u5EA6", className: "chart-viewer__note-speed-input", max: 2, min: 0.5, onChange: (event) => {
+                        }, children: [_jsxs("div", { className: "chart-viewer__sheet-content", ref: sheetContent, onClick: handleSheetClick, onKeyDown: handleSheetKeyDown, role: "application", style: { height: `${sheetHeight}px` }, children: [_jsx("canvas", { "aria-label": "\u8B5C\u9762\u5168\u4F53", className: "chart-viewer__sheet-canvas", ref: sheetCanvas, style: {
+                                            height: `${sheetViewportHeight}px`,
+                                            marginBottom: `${-sheetViewportHeight}px`,
+                                        } }), sheetOverlay?.(sheetGeometry)] }), _jsx("div", { className: "chart-viewer__sheet-cursor" })] }), (showSeekBar || onNoteSpeedChange) && (_jsxs("div", { className: "chart-viewer__controls", children: [showSeekBar && (_jsxs("label", { className: "chart-viewer__seek", children: [_jsxs("span", { className: "chart-viewer__seek-label", children: [_jsx("span", { children: "\u518D\u751F\u4F4D\u7F6E" }), _jsx("span", { children: chartPositionLabel(renderData.measureBoundaries, currentBeat) })] }), _jsx("input", { "aria-label": "\u518D\u751F\u4F4D\u7F6E", className: "chart-viewer__seek-input", max: end, min: 0, onChange: (event) => seekTo(Number(event.target.value)), step: 0.01, type: "range", value: currentBeat })] })), onNoteSpeedChange && (_jsxs("label", { className: "chart-viewer__note-speed", children: [_jsx("span", { children: "\u30CE\u30FC\u30C4\u901F\u5EA6" }), _jsxs("div", { children: [_jsx("input", { "aria-label": "\u30CE\u30FC\u30C4\u901F\u5EA6", className: "chart-viewer__note-speed-input", max: 2, min: 0.5, onChange: (event) => {
                                                     onNoteSpeedChange(event.target.value);
                                                 }, onBlur: onNoteSpeedCommit, onKeyDown: (event) => {
                                                     if (event.key === "Enter")

@@ -3,6 +3,7 @@
 import {
 	type CSSProperties,
 	type ReactNode,
+	useCallback,
 	useEffect,
 	useLayoutEffect,
 	useRef,
@@ -24,7 +25,6 @@ const sheetLaneVisualCount = laneCount + (sheetSideLaneWidthRatio - 1) * 4;
 const sheetPixelsPerBeat = 100;
 const sheetCursorRatio = 0.82;
 const playfieldLookBehindBeats = 1;
-const sheetTileHeight = 4_096;
 const sideLaneWidthRatios = {
 	inner: 3,
 	outer: 4.5,
@@ -1479,9 +1479,10 @@ export function ChartViewer({
 	className?: string;
 	style?: CSSProperties;
 }) {
-	const sheetTiles = useRef<Array<HTMLCanvasElement | null>>([]);
+	const sheetCanvas = useRef<HTMLCanvasElement>(null);
 	const sheetContent = useRef<HTMLDivElement>(null);
 	const sheetViewport = useRef<HTMLDivElement>(null);
+	const sheetDrawFrame = useRef<number | undefined>(undefined);
 	const playfield = useRef<HTMLCanvasElement>(null);
 	const programmaticScrollTop = useRef<number | undefined>(undefined);
 	const preserveScrollAfterClick = useRef(false);
@@ -1502,7 +1503,6 @@ export function ChartViewer({
 	const sheetHeight =
 		sheetEnd * sheetPixelsPerBeat * noteSpeed +
 		Math.max(sheetViewportHeight, 600);
-	const sheetTileCount = Math.max(1, Math.ceil(sheetHeight / sheetTileHeight));
 	const currentBeatRef = useRef(currentBeat);
 	currentBeatRef.current = currentBeat;
 	const sheetGeometry: ChartSheetOverlayGeometry = {
@@ -1516,6 +1516,23 @@ export function ChartViewer({
 	};
 	const renderedSidePanel =
 		typeof sidePanel === "function" ? sidePanel(sheetGeometry) : sidePanel;
+	const scheduleSheetDraw = useCallback(() => {
+		if (sheetDrawFrame.current !== undefined) return;
+		sheetDrawFrame.current = requestAnimationFrame(() => {
+			sheetDrawFrame.current = undefined;
+			const canvas = sheetCanvas.current;
+			const content = sheetContent.current;
+			const viewport = sheetViewport.current;
+			if (!canvas || !content || !viewport) return;
+			paintSheet(
+				canvas,
+				renderData,
+				sheetEnd,
+				content.clientHeight,
+				viewport.scrollTop,
+			);
+		});
+	}, [renderData, sheetEnd]);
 
 	useEffect(() => {
 		const viewport = sheetViewport.current;
@@ -1530,48 +1547,18 @@ export function ChartViewer({
 	useEffect(() => {
 		if (mode === "playfield") return;
 		const viewport = sheetViewport.current;
-		if (!viewport) return;
-		const paintedTiles = new Set<HTMLCanvasElement>();
-		const paintTile = (canvas: HTMLCanvasElement) => {
-			const index = sheetTiles.current.indexOf(canvas);
-			if (index < 0) return;
-			paintSheet(
-				canvas,
-				renderData,
-				sheetEnd,
-				sheetContent.current?.clientHeight ?? sheetHeight,
-				index * sheetTileHeight,
-			);
-			paintedTiles.add(canvas);
-		};
-		const redrawPaintedTiles = () => {
-			for (const canvas of paintedTiles) paintTile(canvas);
-		};
-		const tileObserver = new IntersectionObserver(
-			(entries) => {
-				for (const entry of entries) {
-					const canvas = entry.target as HTMLCanvasElement;
-					if (entry.isIntersecting && !paintedTiles.has(canvas)) {
-						paintTile(canvas);
-					} else if (!entry.isIntersecting) {
-						canvas.width = 0;
-						canvas.height = 0;
-						paintedTiles.delete(canvas);
-					}
-				}
-			},
-			{ root: viewport, rootMargin: "100% 0px" },
-		);
-		for (const canvas of sheetTiles.current) {
-			if (canvas) tileObserver.observe(canvas);
-		}
-		const observer = new ResizeObserver(redrawPaintedTiles);
+		if (!viewport || !sheetCanvas.current) return;
+		const observer = new ResizeObserver(scheduleSheetDraw);
 		observer.observe(viewport);
+		scheduleSheetDraw();
 		return () => {
 			observer.disconnect();
-			tileObserver.disconnect();
+			if (sheetDrawFrame.current !== undefined) {
+				cancelAnimationFrame(sheetDrawFrame.current);
+				sheetDrawFrame.current = undefined;
+			}
 		};
-	}, [renderData, mode, sheetEnd, sheetHeight]);
+	}, [mode, scheduleSheetDraw]);
 	useEffect(() => {
 		if (mode === "sheet") return;
 		const canvas = playfield.current;
@@ -1695,6 +1682,7 @@ export function ChartViewer({
 						ref={sheetViewport}
 						onScroll={(event) => {
 							const viewport = event.currentTarget;
+							scheduleSheetDraw();
 							const content = sheetContent.current;
 							if (!content) return;
 							const contentHeight =
@@ -1726,24 +1714,16 @@ export function ChartViewer({
 							role="application"
 							style={{ height: `${sheetHeight}px` }}
 						>
-							{Array.from({ length: sheetTileCount }, (_, index) => {
-								const tileTop = index * sheetTileHeight;
-								const tileHeight = Math.min(
-									sheetTileHeight,
-									sheetHeight - tileTop,
-								);
-								return (
-									<canvas
-										aria-label={index === 0 ? "譜面全体" : undefined}
-										className="chart-viewer__sheet-tile"
-										key={tileTop}
-										ref={(canvas) => {
-											sheetTiles.current[index] = canvas;
-										}}
-										style={{ height: `${tileHeight}px` }}
-									/>
-								);
-							})}
+							{/* Keep the drawing buffer viewport-sized without shortening the scrollable sheet. */}
+							<canvas
+								aria-label="譜面全体"
+								className="chart-viewer__sheet-canvas"
+								ref={sheetCanvas}
+								style={{
+									height: `${sheetViewportHeight}px`,
+									marginBottom: `${-sheetViewportHeight}px`,
+								}}
+							/>
 							{sheetOverlay?.(sheetGeometry)}
 						</div>
 						<div className="chart-viewer__sheet-cursor" />

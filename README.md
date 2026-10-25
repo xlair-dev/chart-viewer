@@ -2,4 +2,20 @@
 
 A reusable React chart viewer for `xlair-dev/chart-review` and `xlair-dev/dashboard`.
 
-The package is under development. Its supported chart formats and public API will be documented as they are implemented.
+The package is under development. Supported chart formats and the public API will be documented as they are implemented.
+
+## Install from GitHub
+
+```sh
+pnpm add github:xlair-dev/chart-viewer#<tag>
+```
+
+The generated `dist` files are committed so consumers can install a tagged Git dependency without running package build scripts.
+
+## Development
+
+```sh
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm build
+```

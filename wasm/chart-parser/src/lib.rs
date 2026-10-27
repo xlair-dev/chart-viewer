@@ -295,17 +295,14 @@ fn ugc_position(
     measure_offset: bool,
     line: usize,
 ) -> Result<Position, JsValue> {
-    let ticks_per_measure = ticks_per_beat
-        .checked_mul(4)
-        .ok_or_else(|| ugc_line_error(line, "tick resolution overflow"))?;
     let mut position = timeline
-        .position(measure, tick, ticks_per_measure)
+        .position_from_ticks(measure, tick, ticks_per_beat)
         .map_err(|error| ugc_line_error(line, &error.to_string()))?;
     if measure_offset {
         position = position
             .checked_add(
                 timeline
-                    .position(1, 0, ticks_per_measure)
+                    .position(1, 0, 1)
                     .map_err(|error| ugc_line_error(line, &error.to_string()))?,
             )
             .map_err(|error| ugc_line_error(line, &error.to_string()))?;

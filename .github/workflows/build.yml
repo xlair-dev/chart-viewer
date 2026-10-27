@@ -48,5 +48,7 @@ jobs:
         run: cargo install wasm-pack --version 0.15.0 --locked
       - name: Build package
         run: pnpm build
+      - name: Test generated parser
+        run: pnpm test
       - name: Check generated package files
         run: git diff --exit-code -- dist

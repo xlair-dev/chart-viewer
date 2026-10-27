@@ -16,6 +16,7 @@
 	"scripts": {
 		"build": "pnpm build:wasm && node scripts/build.mjs",
 		"build:wasm": "sh scripts/build-chart-parser.sh",
+		"test": "node --test scripts/chart-parser.test.mjs",
 		"lint": "biome check ."
 	},
 	"peerDependencies": {

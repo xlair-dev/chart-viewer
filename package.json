@@ -7,13 +7,15 @@
 		"dist"
 	],
 	"exports": {
+		"./style.css": "./dist/chart-viewer.css",
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
 		}
 	},
 	"scripts": {
-		"build": "node scripts/build.mjs",
+		"build": "pnpm build:wasm && node scripts/build.mjs",
+		"build:wasm": "sh scripts/build-chart-parser.sh",
 		"lint": "biome check ."
 	},
 	"peerDependencies": {

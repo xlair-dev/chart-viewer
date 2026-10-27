@@ -1,1 +1,4 @@
 node_modules/
+/src/wasm/
+/wasm/chart-parser/target/
+/wasm/pkg/

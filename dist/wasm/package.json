@@ -1,0 +1,16 @@
+{
+  "name": "chart-viewer-parser",
+  "type": "module",
+  "description": "Browser-side chart parser for chart-viewer",
+  "version": "0.1.0",
+  "files": [
+    "chart_viewer_parser_bg.wasm",
+    "chart_viewer_parser.js",
+    "chart_viewer_parser.d.ts"
+  ],
+  "main": "chart_viewer_parser.js",
+  "types": "chart_viewer_parser.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
